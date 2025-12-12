@@ -1,0 +1,150 @@
+<!doctype html>
+   <link rel="stylesheet" href="mental.css">
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MentalHealth — Login / Sign Up</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="wrap">
+    <aside class="left" aria-hidden="false">
+      <div class="shape s1" aria-hidden="true"></div>
+      <div class="shape s2" aria-hidden="true"></div>
+
+      <div class="brand">
+        <div class="logo-badge" aria-hidden="true">
+        
+          <svg width="44" height="44" viewBox="0 0 54 54" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="g1" x1="0" x2="1">
+                <stop offset="0" stop-color="#6c63ff" />
+                <stop offset="1" stop-color="#4bb6b9" />
+              </linearGradient>
+            </defs>
+            <rect width="54" height="54" rx="12" fill="url(#g1)"/>
+            <text x="50%" y="60%" text-anchor="middle" fill="white" font-family="Inter, Arial" font-weight="800" font-size="20">MH</text>
+          </svg>
+        </div>
+        <div>
+          <h2>MentalHealth</h2>
+          <div class="tag">Support for your mind — safe, private, and kind.</div>
+        </div>
+      </div>
+
+      <h1>You're not alone.</h1>
+      <p class="lead">Sign in to continue your journey toward better mental wellbeing. Track progress, get guided check-ins, and access supportive resources — at your pace.</p>
+
+      <div class="illustration" aria-hidden="true">
+         
+        <svg width="260" height="140" viewBox="0 0 260 140" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="calm illustration">
+          <rect x="10" y="10" width="120" height="100" rx="12" fill="#fff" stroke="#e9f4f3"/>
+          <circle cx="196" cy="44" r="36" fill="#f6fbff" stroke="#e6f1ff"/>
+          <path d="M22 66c20-14 48-18 80-12" stroke="#cfeff0" stroke-width="2" stroke-linecap="round"/>
+          <path d="M38 96c22-8 44-8 64 0" stroke="#cfeff0" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      </div>
+
+      <p style="margin-top:14px;color:var(--muted);font-size:13px">Confidentiality is our priority. If you feel in danger, contact local emergency services immediately.</p>
+    </aside>
+
+    <main class="card" role="main">
+      <div class="toggle" role="tablist" aria-label="Auth switch">
+        <button id="btn-login" class="active" role="tab" aria-selected="true">Login</button>
+        <button id="btn-signup" role="tab" aria-selected="false">Sign Up</button>
+      </div>
+
+      <section id="login-panel">
+        <form id="login-form" novalidate>
+          <div class="field">
+            <label for="login-email">Email</label>
+            <div class="input-wrap">
+              <input id="login-email" type="email" placeholder="you@example.com" required aria-required="true" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="login-pass">Password</label>
+            <div class="input-wrap">
+              <input id="login-pass" type="password" placeholder="Your password" minlength="6" required aria-required="true" />
+              <span class="icon" id="toggle-pass" title="Show password" aria-hidden="false">👁️</span>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="primary-btn">Sign in</button>
+            <div style="display:flex;align-items:center;gap:8px">
+              <label style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px"><input type="checkbox"/> Remember</label>
+              <button type="button" class="ghost" id="forgot">Forgot?</button>
+            </div>
+          </div>
+
+          <div class="separator" aria-hidden="true"></div>
+
+          <div class="small">Or continue with</div>
+          <div class="socials" style="margin-top:10px">
+            <button type="button" aria-label="Continue with Google">Google</button>
+            <button type="button" aria-label="Continue with Apple">Apple</button>
+          </div>
+
+          <div class="foot">By continuing you agree to our terms and privacy policy.</div>
+        </form>
+      </section>
+
+      <section id="signup-panel" style="display:none">
+        <form id="signup-form" novalidate>
+          <div class="row">
+            <div class="field">
+              <label for="first">First name</label>
+              <input id="first" type="text" placeholder="Jane" required />
+            </div>
+            <div class="field">
+              <label for="last">Last name</label>
+              <input id="last" type="text" placeholder="Doe" required />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="signup-email">Email</label>
+            <input id="signup-email" type="email" placeholder="you@example.com" required />
+          </div>
+
+          <div class="field">
+            <label for="signup-pass">Create password</label>
+            <div class="input-wrap">
+              <input id="signup-pass" type="password" placeholder="At least 6 characters" minlength="6" required />
+              <span class="icon" id="toggle-pass-2" title="Show password">👁️</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="reason">Reason for joining (optional)</label>
+            <select id="reason">
+              <option value="">Select a reason</option>
+              <option>Check-ins & mood tracking</option>
+              <option>Self-help courses</option>
+              <option>Find a therapist</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="actions">
+            <button class="primary-btn" type="submit">Create account</button>
+            <button class="ghost" type="button" id="cancel-signup">Cancel</button>
+          </div>
+
+          <div class="helper" id="signup-helper">Please fill all required fields correctly.</div>
+
+          <div class="separator" aria-hidden="true"></div>
+
+          <div class="small">We value your privacy. You can delete your account at any time.</div>
+        </form>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="mental.js"></script>
+</body>
+</html>
