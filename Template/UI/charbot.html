@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mental Health — Chat</title>
+
+  <style>
+    :root{
+      --bg1:#f8fafc; --bg2:#f1f5f9; --accent:#5b21b6; --muted:#6b7280;
+      --bubble-assist: #eef2ff; --bubble-user: #4f46e5; --bubble-user-text: #fff;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto;
+    }
+    *{box-sizing:border-box;}
+    html, body {height:100%;margin:0;padding:0;background: linear-gradient(180deg, var(--bg1), var(--bg2));display:flex;flex-direction:column;align-items:center;overflow-y:auto;}
+    .app { width:100%; max-width:1100px; height:80vh; min-height:600px; margin-top:20px; background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(248,250,252,0.95)); border-radius:16px; box-shadow:0 10px 30px rgba(2,6,23,0.12); display:grid; grid-template-columns:320px 1fr; overflow:hidden; }
+    .sidebar { padding:22px; border-right:1px solid rgba(0,0,0,0.05); background:linear-gradient(180deg,#f9f5ff,#ffffff); display:flex; flex-direction:column; gap:18px; }
+    .brand { display:flex; gap:12px; align-items:center; }
+    .logo { width:48px;height:48px; background:#efeaff; border-radius:10px; display:flex;align-items:center;justify-content:center; font-weight:700;color:var(--accent); }
+    .mood-label{font-size:13px;font-weight:600;}
+    .mood-row{display:flex;gap:8px;flex-wrap:wrap;}
+    .mood-btn{ border:1px solid #ddd; padding:8px 10px; border-radius:10px; background:white; cursor:pointer; font-size:13px; transition:transform .12s ease, box-shadow .12s ease; }
+    .mood-btn:hover{ transform:translateY(-2px) }
+    .mood-btn.selected{ background:#eee6ff; border-color:#b8a3ff; box-shadow:0 8px 20px rgba(99,102,241,0.06); }
+    .quick-list { display:flex; flex-direction:column; gap:8px; }
+    .quick-item { border:1px solid #ddd; padding:8px 10px; border-radius:10px; background:white; font-size:13px; cursor:pointer; transition:transform .08s ease, background .12s; }
+    .quick-item:hover{ transform:translateY(-2px); background:#fbfbff; }
+    .note{font-size:12px;color:var(--muted);}
+    .chat { display:flex; flex-direction:column; height:100%; overflow:hidden; }
+    .chat-head { padding:18px 22px; border-bottom:1px solid rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center; }
+    .messages-wrap { flex:1; position:relative; overflow:hidden; background:linear-gradient(180deg,#ffffff,#f7f9fc); }
+    .messages { height:100%; padding:22px; overflow-y:auto; display:flex; flex-direction:column; gap:14px; scroll-behavior:smooth; }
+    .bubble { max-width:75%; padding:12px 14px; border-radius:14px; box-shadow:0 4px 18px rgba(0,0,0,0.05); opacity:0; transform: translateY(8px) scale(.995); animation:msg-in .28s forwards ease; }
+    @keyframes msg-in { to { opacity:1; transform: translateY(0) scale(1); } }
+    .assistant { align-self:flex-start; background:var(--bubble-assist); }
+    .user { align-self:flex-end; background:var(--bubble-user); color:var(--bubble-user-text); }
+    .meta { font-size:11px; margin-top:6px; color:var(--muted); text-align:right; }
+    .typing { width:84px; padding:8px 12px; border-radius:14px; display:inline-flex; gap:6px; align-items:center; background:var(--bubble-assist); box-shadow:0 4px 18px rgba(0,0,0,0.05); opacity:0; transform: translateY(6px); animation:typing-in .18s forwards; }
+    @keyframes typing-in { to { opacity:1; transform:translateY(0); } }
+    .dots { display:inline-flex; gap:6px; align-items:center; height:10px; }
+    .dot { width:8px; height:8px; border-radius:50%; background:#9ca3ff; opacity:.9; transform: translateY(0); animation:dot 1s infinite; }
+    .dot:nth-child(2){ animation-delay:.15s } .dot:nth-child(3){ animation-delay:.3s }
+    @keyframes dot { 0%{ transform: translateY(0); opacity:.6 } 50%{ transform: translateY(-6px); opacity:1 } 100%{ transform: translateY(0); opacity:.6 } }
+    .composer { padding:14px 18px; display:flex; gap:8px; border-top:1px solid rgba(0,0,0,0.05); background:rgba(255,255,255,0.8); align-items:center; }
+    textarea { flex:1; padding:10px; border-radius:10px; resize:none; border:1px solid #ccc; min-height:48px; max-height:140px; font-size:14px; }
+    .controls { display:flex; gap:8px; align-items:center; }
+    .send { padding:10px 14px; border-radius:10px; background:var(--accent); color:white; font-weight:600; border:none; cursor:pointer; transition: transform .12s ease; }
+    .send:active{ transform: translateY(1px) } .send[disabled]{ opacity:.65; cursor:default; transform:none; }
+    .mic { width:44px; height:44px; border-radius:10px; display:inline-grid; place-items:center; border:1px solid #ddd; background:white; cursor:pointer; transition: box-shadow .12s ease, transform .12s; }
+    .mic.recording { box-shadow:0 8px 24px rgba(249,115,22,0.16); transform:scale(1.03); border-color:#fb923c; background:linear-gradient(180deg,#fff7ed,#fff2e6); }
+    .mic svg { width:20px; height:20px; fill:var(--accent); }
+    .mic-toast { position:absolute; left:50%; transform:translateX(-50%); top:8px; background:rgba(0,0,0,0.75); color:white; padding:6px 10px; border-radius:8px; font-size:13px; z-index:50; opacity:0; pointer-events:none; transition:opacity .18s; }
+    .mic-toast.show { opacity:1; pointer-events:auto; }
+    footer { margin: 15px 0 20px; font-size: 15px; color: var(--muted); font-weight: 600; text-align: center; width: 100%; user-select: none; }
+    @media (max-width:900px){ .app{ grid-template-columns:1fr; height:90vh; } .sidebar{ order:2; border-right:0; border-top:1px solid #ddd; } .mic { width:40px; height:40px } }
+  </style>
+</head>
+
+<body>
+
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">MH</div>
+        <div>
+          <h3 style="margin:0">Mental Health</h3>
+          <p style="font-size:12px;color:gray;margin:0;">Your supportive companion</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="mood-label">How are you feeling?</div>
+        <div class="mood-row" id="moodRow">
+          <button class="mood-btn" data-mood="sad">Sad</button>
+          <button class="mood-btn selected" data-mood="neutral">Neutral</button>
+          <button class="mood-btn" data-mood="okay">Okay</button>
+          <button class="mood-btn" data-mood="good">Good</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="quick-label">Quick Prompts</div>
+        <div class="quick-list" id="quickList">
+          <button class="quick-item">I'm feeling anxious about work</button>
+          <button class="quick-item">I can't sleep at night</button>
+          <button class="quick-item">I'm feeling lonely</button>
+          <button class="quick-item">I need help with motivation</button>
+          <button class="quick-item">Will things ever get better for me?</button>
+          <button class="quick-item">I feel like I'm a burden to everyone. What should I do?</button>
+          <button class="quick-item">Is something wrong with me? Why can't I be happy like others?</button>
+        </div>
+      </div>
+
+      <p class="note">Note: This chatbot offers emotional support, not medical advice.</p>
+    </aside>
+
+    <section class="chat">
+      <div class="chat-head">
+        <h3 style="margin:0">Conversation</h3>
+        <span id="status">Ready</span>
+      </div>
+
+      <div class="messages-wrap">
+        <div class="messages" id="messages" role="log" aria-live="polite"></div>
+        <div id="micToast" class="mic-toast" aria-hidden="true"></div>
+      </div>
+
+      <div class="composer">
+        <textarea id="inputArea" placeholder="Type your message..." rows="1" aria-label="Message input"></textarea>
+
+        <div class="controls">
+          <button id="micBtn" class="mic" title="Start voice input" aria-pressed="false" aria-label="Start voice input">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"></path><path d="M19 11a1 1 0 0 1-2 0 5 5 0 0 0-10 0 1 1 0 0 1-2 0 7 7 0 0 0 6 6.92V21a1 1 0 1 0 2 0v-3.08A7 7 0 0 0 19 11z"></path></svg>
+          </button>
+
+          <button id="sendBtn" class="send" aria-label="Send message">Send</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer>Developed by <strong>Prajwal Naik</strong> &amp; <strong>Swayam Kesarkar</strong></footer>
+
+  <script>
+    // Elements
+    const messagesEl = document.getElementById("messages");
+    const input = document.getElementById("inputArea");
+    const sendBtn = document.getElementById("sendBtn");
+    const micBtn = document.getElementById("micBtn");
+    const micToast = document.getElementById("micToast");
+    const moodRow = document.getElementById("moodRow");
+    const quickList = document.getElementById("quickList");
+    const statusEl = document.getElementById("status");
+
+    let recognition = null;
+    let recognizing = false;
+    let autoSendTimer = null;
+    const AUTO_SEND_MS = 3000; // 3 seconds silence => auto-send
+    let isSending = false;
+
+    // Chat state (simple in-memory history)
+    const chatHistory = [{ role:'assistant', text:"Hi — I'm here to listen. What's on your mind?", time: new Date().toLocaleTimeString() }];
+
+    // Render helpers
+    function escapeHtml(text){
+      return String(text).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch]);
+    }
+    function createBubble(m){
+      const div = document.createElement('div');
+      div.className = 'bubble ' + m.role;
+      div.innerHTML = `<div>${escapeHtml(m.text)}</div><div class="meta">${escapeHtml(m.time)}</div>`;
+      return div;
+    }
+    function renderMessages(){
+      messagesEl.innerHTML = '';
+      for(const m of chatHistory) messagesEl.appendChild(createBubble(m));
+      scrollToBottom();
+    }
+    function scrollToBottom({smooth=false} = {}){
+      try{
+        if(smooth) messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: 'smooth' });
+        else messagesEl.scrollTop = messagesEl.scrollHeight;
+      }catch(e){ messagesEl.scrollTop = messagesEl.scrollHeight; }
+    }
+
+    // Toast
+    function showMicToast(text, timeout=0){
+      micToast.textContent = text;
+      micToast.classList.add('show');
+      micToast.setAttribute('aria-hidden','false');
+      if(timeout>0) setTimeout(()=> { micToast.classList.remove('show'); micToast.setAttribute('aria-hidden','true'); }, timeout);
+    }
+
+    // Typing indicator
+    function showTypingIndicator(){
+      if(document.querySelector('.typing')) return;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'bubble assistant typing';
+      wrapper.innerHTML = `<div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
+      messagesEl.appendChild(wrapper);
+      scrollToBottom({smooth:true});
+    }
+    function hideTypingIndicator(){ const el = document.querySelector('.typing'); if(el) el.remove(); }
+
+    // Mock LLM reply
+    function sendMockReply(userText, mood='neutral'){
+      return new Promise(res=>{
+        const low = String(userText).toLowerCase();
+        let reply = "Thank you for sharing. I hear you. Would you like coping strategies or to keep talking?";
+        if(low.includes('anx')||low.includes('nerv')) reply = "That sounds tough — try 4-4-4 breathing: inhale 4s, hold 4s, exhale 4s.";
+        if(low.includes('sleep')||low.includes('insom')) reply = "Sleep troubles are common — dim lights and avoid screens 30 minutes before bed.";
+        if(low.includes('burden')) reply = "I'm sorry you're feeling that way. That feeling is valid — would you like small steps to feel lighter?";
+        setTimeout(()=> res({ role:'assistant', text: reply, time: new Date().toLocaleTimeString() }), 700 + Math.random()*600);
+      });
+    }
+
+    // Send message
+    async function sendMessage(){
+      const text = input.value.trim();
+      if(!text || isSending) return;
+
+      // clean any leftover marker
+      input.value = input.value.replace(/\s*\[listening\]$/,'').trim();
+
+      isSending = true;
+      statusEl.textContent = 'Thinking...';
+      sendBtn.disabled = true;
+
+      // push user
+      const userMsg = { role:'user', text, time: new Date().toLocaleTimeString() };
+      chatHistory.push(userMsg);
+      renderMessages();
+      input.value = '';
+
+      // show typing and call mock
+      showTypingIndicator();
+      try{
+        const mood = document.querySelector('.mood-btn.selected')?.dataset?.mood || 'neutral';
+        // Replace with your backend call when ready:
+        const assistant = await sendMockReply(text, mood);
+
+        hideTypingIndicator();
+        chatHistory.push(assistant);
+        renderMessages();
+      }catch(err){
+        hideTypingIndicator();
+        chatHistory.push({ role:'assistant', text: "Sorry — something went wrong. Please try again.", time:new Date().toLocaleTimeString() });
+        renderMessages();
+        console.error(err);
+      }finally{
+        isSending = false;
+        statusEl.textContent = 'Ready';
+        sendBtn.disabled = false;
+      }
+    }
+
+    // Wire send + enter
+    sendBtn.addEventListener('click', sendMessage);
+    input.addEventListener('keydown', e => { if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); } });
+
+    // Quick prompts
+    quickList.querySelectorAll('.quick-item').forEach(btn => btn.addEventListener('click', ()=> { input.value = btn.textContent; input.focus(); }));
+
+    // Mood selector
+    moodRow.querySelectorAll('.mood-btn').forEach(b => b.addEventListener('click', ()=> { moodRow.querySelectorAll('.mood-btn').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); }));
+
+    // ---------- Improved speech recognition: avoid duplicate words ----------
+    // Behavior:
+    // - recognitionBase: the content present before speech session started (user typed text)
+    // - interim text is shown temporarily (recognitionBase + interim)
+    // - when final results arrive we update recognitionBase and overwrite interim (not append)
+    // - scheduleAutoSend resets on each onresult; after AUTO_SEND_MS silence we stop recognition and send
+
+    let recognitionBase = ''; // text present before current speech session
+    function scheduleAutoSend(){
+      if(autoSendTimer) clearTimeout(autoSendTimer);
+      autoSendTimer = setTimeout(()=> {
+        try { if(recognizing && recognition) recognition.stop(); } catch(e){ /* ignore */ }
+        setTimeout(()=> {
+          const txt = input.value.replace(/\s*\[listening\]$/,'').trim();
+          if(txt) sendMessage();
+        }, 120);
+      }, AUTO_SEND_MS);
+    }
+
+    function setupSpeech(){
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if(!SpeechRecognition){ micBtn.style.display = 'none'; return; }
+
+      recognition = new SpeechRecognition();
+      recognition.lang = 'en-IN';
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => {
+        recognizing = true;
+        micBtn.classList.add('recording');
+        micBtn.setAttribute('aria-pressed','true');
+        showMicToast('Listening...');
+        // snapshot current base
+        recognitionBase = input.value.replace(/\s*\[listening\]$/,'').trim();
+        if(autoSendTimer) clearTimeout(autoSendTimer);
+      };
+
+      recognition.onerror = (e) => {
+        console.warn('Speech recognition error', e);
+        recognizing = false;
+        micBtn.classList.remove('recording');
+        micBtn.setAttribute('aria-pressed','false');
+        showMicToast('Voice input error', 1500);
+        if(autoSendTimer) clearTimeout(autoSendTimer);
+      };
+
+      recognition.onresult = (event) => {
+        // accumulate interim and final results from this event
+        let interim = '';
+        let final = '';
+        for(let i = event.resultIndex; i < event.results.length; i++){
+          const result = event.results[i];
+          if(result.isFinal) final += result[0].transcript;
+          else interim += result[0].transcript;
+        }
+
+        // If we have final transcript -> commit it to recognitionBase and show it (overwrite interim)
+        if(final.trim()){
+          // Append final to recognitionBase cleanly
+          recognitionBase = (recognitionBase ? (recognitionBase + ' ') : '') + final.trim();
+          // Update input with new committed base
+          input.value = recognitionBase;
+          // schedule auto-send after silence
+          scheduleAutoSend();
+        } else {
+          // Only interim present: show recognitionBase + interim (temporary)
+          const display = (recognitionBase ? (recognitionBase + ' ') : '') + interim;
+          input.value = display;
+          // schedule auto-send in case user stops speaking
+          scheduleAutoSend();
+        }
+      };
+
+      recognition.onend = () => {
+        recognizing = false;
+        micBtn.classList.remove('recording');
+        micBtn.setAttribute('aria-pressed','false');
+        showMicToast('Stopped', 900);
+
+        // If autoSendTimer is not set (user stopped quickly), attempt a quick send
+        if(!autoSendTimer){
+          const txt = input.value.replace(/\s*\[listening\]$/,'').trim();
+          if(txt) setTimeout(()=> sendMessage(), 120);
+        }
+      };
+    }
+
+    // Toggle mic
+    function toggleMic(){
+      if(!recognition){ showMicToast('Voice input not supported in this browser', 1800); return; }
+      if(recognizing){
+        try { recognition.stop(); } catch(e){ console.warn(e); }
+      } else {
+        input.value = input.value.replace(/\s*\[listening\]$/,'');
+        try { recognition.start(); } catch(e){ console.warn('recognition.start error', e); showMicToast('Mic start error', 1200); }
+      }
+    }
+
+    micBtn.addEventListener('click', toggleMic);
+
+    // init
+    setupSpeech();
+    renderMessages();
+
+    // expose for debugging
+    window.mindcare = { chatHistory, sendMessage };
+  </script>
+</body>
+</html>
