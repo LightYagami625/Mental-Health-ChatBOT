@@ -32,10 +32,10 @@ def chat_api():
     if not user_message:
         return jsonify({'error': 'Thik se daal BKL'}), 400
 
-    MENTAL_HEALTH_KEYWORDS = [
-    "anxiety", "panic", "depression", "sad", "stress", "overwhelmed",
-    "hopeless", "mental", "therapy", "lonely", "trauma", "mood",
-    "fear", "worry", "self-esteem", "mental health", "grief"]
+    # MENTAL_HEALTH_KEYWORDS = [
+    # "anxiety", "panic", "depression", "sad", "stress", "overwhelmed",
+    # "hopeless", "mental", "therapy", "lonely", "trauma", "mood",
+    # "fear", "worry", "self-esteem", "mental health", "grief"]
 
     # def is_mental_health_message(msg: str) -> bool:
     #     m = msg.lower()
